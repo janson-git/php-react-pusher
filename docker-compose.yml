@@ -1,0 +1,21 @@
+version: '3'
+services:
+#  rabbitmq:
+#    # listen op port 5672
+#    # https://hub.docker.com/_/rabbitmq
+#    image: rabbitmq:3-management-alpine
+##    environment:
+#      # default values guest/guest
+##      - RABBITMQ_DEFAULT_USER: guest
+##      - RABBITMQ_DEFAULT_PASS: guest
+#    ports:
+#      # management http://localhost:8090
+#      - 8090:15672
+#      - 5672:5672
+
+
+#  zeromq:
+##    image: jador/zeromq:micro
+#    image: zeromq
+#    command: "sleep 10000"
+

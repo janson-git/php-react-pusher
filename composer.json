@@ -1,0 +1,16 @@
+{
+  "name": "janson-git/php-react-chat",
+  "description": "Learning react php with chat application",
+  "minimum-stability": "dev",
+  "autoload": {
+    "psr-4": {
+      "App\\": "app"
+    }
+  },
+  "require": {
+    "ext-json": "*",
+    "ext-zmq": "*",
+    "cboden/ratchet": "^0.4",
+    "react/zmq": "^0.4.0"
+  }
+}
