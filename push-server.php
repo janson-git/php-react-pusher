@@ -16,9 +16,7 @@ $webSock = new React\Socket\Server('0.0.0.0:8081', $loop); // Binding to 0.0.0.0
 $webServer = new Ratchet\Server\IoServer(
     new Ratchet\Http\HttpServer(
         new Ratchet\WebSocket\WsServer(
-            new Ratchet\Wamp\WampServer(
-                $pusher
-            )
+            new Ratchet\Wamp\WampServer($pusher)
         )
     ),
     $webSock
