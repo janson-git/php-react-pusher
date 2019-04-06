@@ -13,10 +13,16 @@ class SocketConnectionsManager implements WampServerInterface
 
     /** A lookup of all the topics clients have subscribed to */
     protected $subscribedTopics = [];
-    /** @var ConnectionInterface[]  */
-    protected $userConnectionsMap = [];
+    /** @var \SplObjectStorage  */
+    protected $connectionStorage;
+    protected $userConnectionsMap;
     /** @var \ZMQSocket */
     protected $zmqSocket;
+
+    public function __construct()
+    {
+        $this->connectionStorage = new \SplObjectStorage();
+    }
 
     /**
      * Set ZMQ socket to forward client messages to server
@@ -30,6 +36,22 @@ class SocketConnectionsManager implements WampServerInterface
     protected function log(string $message, string $level = self::INFO) : void
     {
         echo "{$level}: {$message}\n";
+    }
+
+    /**
+     * @param $conn
+     * @return string
+     */
+    protected function getUserIdByConnection($conn) : string
+    {
+        if ($this->connectionStorage->contains($conn)) {
+            $userId = $this->connectionStorage[$conn];
+        } else {
+            $path = $conn->wrappedConn->httpRequest->getUri()->getPath();
+            $userId = (string)str_replace('/', '', $path);
+        }
+
+        return $userId;
     }
 
     /**
@@ -55,10 +77,10 @@ class SocketConnectionsManager implements WampServerInterface
      */
     public function onOpen(ConnectionInterface $conn) : void
     {
-        $path = $conn->wrappedConn->httpRequest->getUri()->getPath();
-        $userId = str_replace('/', '', $path);
+        $userId = $this->getUserIdByConnection($conn);
 
         if (!empty($userId)) {
+            $this->connectionStorage->attach($conn, $userId);
             $this->userConnectionsMap[$userId] = $conn;
         }
 
@@ -71,12 +93,9 @@ class SocketConnectionsManager implements WampServerInterface
      */
     public function onClose(ConnectionInterface $conn) : void
     {
-        $path = $conn->wrappedConn->httpRequest->getUri()->getPath();
-        $userId = str_replace('/', '', $path);
-
-        if (!empty($userId)) {
-            unset($this->userConnectionsMap[$userId]);
-        }
+        $userId = $this->getUserIdByConnection($conn);
+        $this->connectionStorage->detach($conn);
+        unset($this->userConnectionsMap[$userId]);
 
         $this->log("Closed for {$userId}!");
     }
@@ -98,7 +117,9 @@ class SocketConnectionsManager implements WampServerInterface
      */
     public function onPublish(ConnectionInterface $conn, $topic, $event, array $exclude, array $eligible) : void
     {
-        $message = json_encode(['topic' => $topic->getId(), 'event' => $event]);
+        $userId = $this->getUserIdByConnection($conn);
+
+        $message = json_encode(['topic' => $topic->getId(), 'event' => $event, 'sender' => $userId]);
 
         $this->log('Published message from client!');
         $this->log($message);
@@ -156,7 +177,7 @@ class SocketConnectionsManager implements WampServerInterface
             }
 
             if (in_array(self::SEND_TO_ALL, $receivers, true)) {
-                $receivers = $this->userConnectionsMap;
+                $receivers = array_keys($this->userConnectionsMap);
             }
 
             // send message to all $receivers
