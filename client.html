@@ -1,8 +1,9 @@
-<script type="text/javascript" src="http://localhost:63342/php-web-sockets/autobahn.js"></script>
+<script type="text/javascript" src="http://localhost:63342/reactphp-pusher/autobahn.js"></script>
 <script>
   var conn = new ab.Session('ws://localhost:8081',
     function() {
       conn.subscribe('newPost', function(topic, data) {
+        console.log(topic, data);
         // This is where you would add the new article to the DOM (beyond the scope of this tutorial)
         console.log('New article published to category "' + topic + '" : ' + data.title);
       });

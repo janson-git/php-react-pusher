@@ -7,14 +7,14 @@
 require __DIR__ . '/vendor/autoload.php';
 
 $entryData = [
-    'category' => \App\Categories::NEW_POST,
+    'topic'    => 'newPost',
     'title'    => 'Title Here',
     'article'  => 'Some text data will be here',
     'when'     => time()
 ];
 
 $context = new ZMQContext();
-$socket = $context->getSocket(ZMQ::SOCKET_PUSH, 'my pusher');
+$socket = $context->getSocket(ZMQ::SOCKET_PUSH, 'toClient');
 $socket->connect("tcp://localhost:5555");
 
 $socket->send(json_encode($entryData));
